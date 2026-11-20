@@ -3,7 +3,7 @@ from pathlib import Path
 p = Path("app/src/main/java/com/worldbridge/app/WorldPreviewView.java")
 s = p.read_text()
 s = s.replace("import android.graphics.Canvas;", "import android.graphics.Bitmap;\nimport android.graphics.Canvas;")
-s = s.replace("import java.util.Map;", "import java.util.Map;\nimport java.util.HashMap;")
+s = s.replace("import java.util.Map;", "import java.util.Map;\nimport java.util.HashMap;\nimport java.util.Iterator;")
 
 s = s.replace(
     "    private BedrockWorldPreview.PreviewData preview;",
@@ -47,9 +47,8 @@ methods = """    private void drawVisibleChunkBitmaps(Canvas canvas, float chunk
                 }
                 if (tile != null) {
                     float dstLeft = mapLeft + cx * chunkSize;
-                    canvas.drawBitmap(tile, null,
-                            new RectF(dstLeft, dstTop, dstLeft + chunkSize + 0.25f,
-                                    dstTop + chunkSize + 0.25f), paint);
+                    rect.set(dstLeft, dstTop, dstLeft + chunkSize + 0.25f, dstTop + chunkSize + 0.25f);
+                    canvas.drawBitmap(tile, null, rect, paint);
                 }
             }
         }
