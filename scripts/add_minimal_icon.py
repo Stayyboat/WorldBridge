@@ -1,5 +1,4 @@
 from pathlib import Path
-import math
 import struct
 import zlib
 import xml.etree.ElementTree as ET
@@ -8,14 +7,13 @@ ROOT = Path("app/src/main")
 RES = ROOT / "res"
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 
-# Flat, minimal chunk-grid mark on the existing charcoal/purple palette.
+# Minimal chunk-grid mark. Matching purple tiles and matching grey tiles keep
+# the pattern balanced; all four tile dimensions and all four outer margins
+# are generated from one centred grid calculation.
 BG = (0x24, 0x23, 0x2B, 255)
-TILES = [
-    (0xA7, 0x8B, 0xFA, 255),
-    (0x55, 0x51, 0x5F, 255),
-    (0x55, 0x51, 0x5F, 255),
-    (0x8B, 0x5C, 0xF6, 255),
-]
+PURPLE = (0x8B, 0x5C, 0xF6, 255)
+GREY = (0x55, 0x51, 0x5F, 255)
+TILES = (PURPLE, GREY, GREY, PURPLE)
 
 
 def png_chunk(kind, data):
@@ -24,32 +22,47 @@ def png_chunk(kind, data):
 
 
 def make_icon_png(size):
-    # Keep the complete four-tile mark comfortably inside launcher masking.
     pixels = bytearray()
-    margin = round(size * 0.185)
-    gap = round(size * 0.075)
-    tile = round(size * 0.295)
-    radius = max(1, round(size * 0.028))
-    boxes = [
-        (margin, margin, margin + tile, margin + tile, TILES[0]),
-        (margin + tile + gap, margin, margin + tile * 2 + gap, margin + tile, TILES[1]),
-        (margin, margin + tile + gap, margin + tile, margin + tile * 2 + gap, TILES[2]),
-        (margin + tile + gap, margin + tile + gap, margin + tile * 2 + gap, margin + tile * 2 + gap, TILES[3]),
-    ]
+
+    # A centred square grid with equal-width tiles, one equal gap, and
+    # mathematically equal margins on all four sides.
+    tile = size * 0.30
+    gap = size * 0.075
+    grid_size = tile * 2 + gap
+    margin = (size - grid_size) / 2.0
+    radius = size * 0.028
+
+    left = margin
+    middle = margin + tile
+    right = middle + gap
+    bottom = margin + tile * 2 + gap
+
+    boxes = (
+        (left, margin, middle, margin + tile, TILES[0]),
+        (right, margin, right + tile, margin + tile, TILES[1]),
+        (left, margin + tile + gap, middle, bottom, TILES[2]),
+        (right, margin + tile + gap, right + tile, bottom, TILES[3]),
+    )
 
     for y in range(size):
+        py = y + 0.5
         pixels.append(0)  # PNG filter: None
         for x in range(size):
+            px = x + 0.5
             color = BG
+
             for x0, y0, x1, y1, tile_color in boxes:
-                if x0 <= x < x1 and y0 <= y < y1:
-                    # Rounded corners without extra libraries or platform tools.
-                    cx = min(max(x, x0 + radius), x1 - radius - 1)
-                    cy = min(max(y, y0 + radius), y1 - radius - 1)
-                    dx, dy = x - cx, y - cy
+                if x0 <= px < x1 and y0 <= py < y1:
+                    # Pixel-centre rounded-rectangle test. Using continuous
+                    # coordinates makes opposite edges exact mirror images.
+                    cx = min(max(px, x0 + radius), x1 - radius)
+                    cy = min(max(py, y0 + radius), y1 - radius)
+                    dx = px - cx
+                    dy = py - cy
                     if dx * dx + dy * dy <= radius * radius:
                         color = tile_color
                         break
+
             pixels.extend(color)
 
     header = struct.pack(">2I5B", size, size, 8, 6, 0, 0, 0)
@@ -64,9 +77,6 @@ def make_icon_png(size):
 if not (ROOT / "AndroidManifest.xml").exists():
     raise SystemExit("AndroidManifest.xml missing; refusing to build an unreferenced launcher icon.")
 
-# Create regular bitmap launcher resources at every Android launcher density.
-# Bitmap resources are deliberately used here instead of relying only on adaptive
-# XML resources, which some launchers/installer flows can continue to cache or skip.
 density_sizes = {
     "mipmap-mdpi": 48,
     "mipmap-hdpi": 72,
@@ -81,15 +91,13 @@ for folder, size in density_sizes.items():
     (out / "ic_launcher.png").write_bytes(png)
     (out / "ic_launcher_round.png").write_bytes(png)
 
-# A high-resolution no-density copy is useful to tooling that requests it directly.
 nodpi = RES / "mipmap-nodpi"
 nodpi.mkdir(parents=True, exist_ok=True)
 png = make_icon_png(512)
 (nodpi / "ic_launcher.png").write_bytes(png)
 (nodpi / "ic_launcher_round.png").write_bytes(png)
 
-# Remove the previous adaptive-only resource so @mipmap/ic_launcher resolves to
-# the new explicit density bitmaps on every Android release, including Android 8+.
+# Avoid adaptive-only fallback resources; use the explicit bitmaps above.
 for old_name in ("ic_launcher.xml", "ic_launcher_round.xml"):
     old = RES / "mipmap-anydpi-v26" / old_name
     if old.exists():
@@ -105,8 +113,6 @@ if app is None:
 app.set(ANDROID + "icon", "@mipmap/ic_launcher")
 app.set(ANDROID + "roundIcon", "@mipmap/ic_launcher_round")
 
-# An activity-level icon overrides the application icon. Explicitly set the
-# launcher activity (and launcher aliases, if present) as well.
 launcher_count = 0
 for node in root.iter():
     if node.tag not in ("activity", "activity-alias"):
@@ -133,4 +139,4 @@ ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
 tree.write(manifest, encoding="utf-8", xml_declaration=True)
 if launcher_count == 0:
     print("Warning: no MAIN/LAUNCHER activity found; application icon was updated.")
-print(f"Installed bitmap launcher icons in {len(density_sizes)} densities and updated {launcher_count} launcher component(s).")
+print(f"Generated perfectly centred, symmetrical chunk-grid icons in {len(density_sizes)} densities; updated {launcher_count} launcher component(s).")
