@@ -378,3 +378,127 @@ a = a.replace('''    protected void onDestroy() {
     }''')
 activity.write_text(a)
 print('Applied faster preview lifecycle.')
+
+
+
+# Replace the one-pass/first-128 preview with a complete-footprint-first pipeline.
+# Pass one only discovers chunk coordinates. Pass two decodes saved terrain palettes
+# and progressively replaces neutral coverage tiles with actual terrain colours.
+engine = Path('engine/src/main/java/com/worldbridge/engine/BedrockWorldPreview.java')
+s = engine.read_text()
+scan_start = s.index('            Map<Long, TileBuilder> builders = new HashMap<>();',
+    s.index('public static PreviewData scan(File worldDirectory, int dimensionId, ProgressListener'))
+scan_end = s.index('\n            // Keep the older biome/height preview as a fallback', scan_start)
+new_scan = r'''            List<Long> columns = new ArrayList<>();
+            Set<Long> discoveredColumns = new HashSet<>();
+            int minX = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+
+            // Pass 1: discover the complete chunk footprint without decoding block palettes.
+            // This avoids showing only the first 128 LevelDB keys, which can look like thin stripes.
+            try (DBIterator iterator = database.iterator(new ReadOptions().fillCache(false))) {
+                while (iterator.hasNext()) {
+                    if (Thread.currentThread().isInterrupted()) throw new IOException("Preview scan cancelled.");
+                    java.util.Map.Entry<byte[], byte[]> record = iterator.next();
+                    byte[] key = record.getKey();
+                    if (!isSubChunkKey(key, dimensionId) && !isColumnTerrainKey(key, dimensionId)) continue;
+                    int x = readIntLE(key, 0), z = readIntLE(key, 4);
+                    long chunkKey = key(x, z);
+                    if (discoveredColumns.add(chunkKey)) columns.add(chunkKey);
+                    minX = Math.min(minX, x); minZ = Math.min(minZ, z);
+                    maxX = Math.max(maxX, x); maxZ = Math.max(maxZ, z);
+                }
+            }
+
+            if (columns.isEmpty()) {
+                PlayerPosition player = readPlayerPosition(database.get(LOCAL_PLAYER));
+                if (database != null) { database.close(); database = null; }
+                return new PreviewData(new HashMap<>(), 0, -1, 0, -1, dimensionId, false, false, player);
+            }
+
+            // Publish every discovered chunk column immediately. Terrain detail is filled in below.
+            if (progressListener != null) {
+                int fallback = dimensionId == 1 ? 0xFF914D3E : dimensionId == 2 ? 0xFF9581B2 : 0xFF607080;
+                int[] fallbackTile = new int[256];
+                Arrays.fill(fallbackTile, fallback);
+                Map<Long, int[]> coverageTiles = new HashMap<>(Math.max(16, columns.size() * 4 / 3));
+                for (long chunkKey : columns) coverageTiles.put(chunkKey, fallbackTile);
+                progressListener.onProgress(new PreviewData(coverageTiles, minX, maxX, minZ, maxZ,
+                        dimensionId, false, false, null), columns.size());
+            }
+
+            // Pass 2: decode actual block terrain while keeping all columns in partial snapshots.
+            Map<Long, TileBuilder> builders = new HashMap<>(Math.max(16, columns.size() * 4 / 3));
+            Map<Long, byte[]> data2dRecords = new HashMap<>();
+            Map<Long, byte[]> data2dLegacyRecords = new HashMap<>();
+            Map<Long, byte[]> data3dRecords = new HashMap<>();
+            Set<Long> detailedColumns = new HashSet<>();
+            int nextProgressAt = 128;
+            try (DBIterator iterator = database.iterator(new ReadOptions().fillCache(false))) {
+                while (iterator.hasNext()) {
+                    if (Thread.currentThread().isInterrupted()) throw new IOException("Preview scan cancelled.");
+                    java.util.Map.Entry<byte[], byte[]> record = iterator.next();
+                    byte[] key = record.getKey();
+                    boolean subChunkRecord = isSubChunkKey(key, dimensionId);
+                    boolean columnRecord = isColumnTerrainKey(key, dimensionId);
+                    if (!subChunkRecord && !columnRecord) continue;
+
+                    int x = readIntLE(key, 0), z = readIntLE(key, 4);
+                    long chunkKey = key(x, z);
+                    TileBuilder builder = builders.computeIfAbsent(chunkKey, ignoredKey -> new TileBuilder(dimensionId));
+                    if (isColumnVersionKey(key, dimensionId)) builder.hasVersion = true;
+
+                    if (columnRecord) {
+                        byte type = key[key.length - 1];
+                        byte[] value = record.getValue();
+                        if (type == DATA_2D) data2dRecords.put(chunkKey, value);
+                        else if (type == DATA_2D_LEGACY) data2dLegacyRecords.put(chunkKey, value);
+                        else if (type == DATA_3D) data3dRecords.put(chunkKey, value);
+                    }
+                    if (subChunkRecord) {
+                        int subChunkY = (byte) key[key.length - 1];
+                        decodeSubChunk(record.getValue(), subChunkY, builder);
+                        if (progressListener != null && detailedColumns.add(chunkKey)
+                                && detailedColumns.size() >= nextProgressAt) {
+                            PreviewData partial = createCoveragePreview(columns, builders,
+                                    minX, maxX, minZ, maxZ, dimensionId);
+                            progressListener.onProgress(partial, columns.size());
+                            nextProgressAt = Math.max(nextProgressAt + 1, nextProgressAt * 2);
+                        }
+                    }
+                }
+            }
+'''
+s = s[:scan_start] + new_scan + s[scan_end:]
+
+helper_start = s.index('    private static PreviewData createCoveragePreview(')
+helper_end = s.index('\n    private static int columnKeyLength(', helper_start)
+new_helper = r'''    private static PreviewData createCoveragePreview(List<Long> columns, Map<Long, TileBuilder> builders,
+            int minX, int maxX, int minZ, int maxZ, int dimensionId) {
+        Map<Long, int[]> tiles = new HashMap<>(Math.max(16, columns.size() * 4 / 3));
+        int fallback = dimensionId == 1 ? 0xFF914D3E : dimensionId == 2 ? 0xFF9581B2 : 0xFF607080;
+        int[] fallbackTile = new int[256];
+        Arrays.fill(fallbackTile, fallback);
+        for (long chunkKey : columns) {
+            TileBuilder builder = builders.get(chunkKey);
+            if (builder == null || builder.surfaceCount == 0) {
+                tiles.put(chunkKey, fallbackTile);
+            } else {
+                int[] colors = builder.colors.clone();
+                for (int i = 0; i < colors.length; i++) if (!builder.seen[i]) colors[i] = fallback;
+                tiles.put(chunkKey, colors);
+            }
+        }
+        return new PreviewData(tiles, minX, maxX, minZ, maxZ, dimensionId, false, false, null);
+    }
+'''
+s = s[:helper_start] + new_helper + s[helper_end:]
+engine.write_text(s)
+
+# Make the status describe the full coverage map while terrain detail is being filled in.
+activity = Path('app/src/main/java/com/worldbridge/app/MainActivity.java')
+a = activity.read_text()
+a = a.replace('Found %,d chunk columns · loading terrain detail…',
+              'Found %,d chunk columns · full map coverage · filling terrain detail…')
+activity.write_text(a)
+print('Applied full-footprint-first preview pipeline.')
