@@ -43,7 +43,7 @@ methods = """    private void drawVisibleChunkBitmaps(Canvas canvas, float chunk
                 Bitmap tile = tileBitmaps.get(key);
                 if (tile == null || tile.isRecycled()) {
                     tile = makeTileBitmap(pixels);
-                    if (tile != null) tileBitmaps.put(key, tile);
+                    if (tile != null) {\n                        tileBitmaps.put(key, tile);\n                        if (tileBitmaps.size() > 512) {\n                            Iterator<Map.Entry<Long, Bitmap>> it = tileBitmaps.entrySet().iterator();\n                            if (it.hasNext()) { Bitmap old = it.next().getValue(); it.remove(); if (old != null && !old.isRecycled()) old.recycle(); }\n                        }\n                    }
                 }
                 if (tile != null) {
                     float dstLeft = mapLeft + cx * chunkSize;
