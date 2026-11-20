@@ -35,6 +35,19 @@ jobs:
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
+      - name: Upload unpacked source for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldBridge-source-snapshot
+          path: |
+            app/src/main/java/**/*.java
+            engine/src/main/java/**/*.java
+            app/build.gradle.kts
+            engine/build.gradle.kts
+            build.gradle.kts
+            settings.gradle.kts
+          if-no-files-found: error
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
