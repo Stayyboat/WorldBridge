@@ -87,7 +87,7 @@ nav_methods = r'''    private View buildBottomNavigation() {
     }
 
     private TextView navigationItem(String symbol, String title, boolean selected) {
-        TextView item = label(symbol + "\\n" + title, 12, selected ? ACCENT : MUTED, true);
+        TextView item = label(symbol + "\n" + title, 12, selected ? ACCENT : MUTED, true);
         item.setGravity(Gravity.CENTER);
         item.setBackground(roundRect(selected ? 0xFF183B29 : NAV_BG, dp(14),
                 selected ? 0xFF285B3D : NAV_BG, selected ? dp(1) : 0));
