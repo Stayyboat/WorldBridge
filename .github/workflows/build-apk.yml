@@ -49,6 +49,7 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "platforms;android-36" "build-tools;36.0.0"
           sed -i "s/compileSdk = 37/compileSdk = 36/" app/build.gradle.kts
+          sed -i 's/version "9.6.0"/version "9.5.1"/' build.gradle.kts
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
