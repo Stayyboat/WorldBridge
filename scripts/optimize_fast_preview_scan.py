@@ -95,9 +95,23 @@ new = r'''    public static PreviewData scan(File worldDirectory, int dimensionI
             if (database != null) { database.close(); database = null; }
 
             Map<Integer, PreviewData> previews = new HashMap<>();
-            for (int dimensionId = 0; dimensionId < 3; dimensionId++) {
+            PreviewData selectedPreview = buildPreviewData(states[detailedDimension], detailedDimension, player);
+            previews.put(detailedDimension, selectedPreview);
+            int cacheBudget = Math.max(0, 30000 - selectedPreview.getChunkCount());
+            boolean[] considered = new boolean[3];
+            considered[detailedDimension] = true;
+            for (int i = 0; i < 2; i++) {
+                int next = -1;
+                for (int candidate = 0; candidate < 3; candidate++) {
+                    if (considered[candidate]) continue;
+                    if (next < 0 || states[candidate].columns.size() < states[next].columns.size()) next = candidate;
+                }
+                if (next < 0) break;
+                considered[next] = true;
+                if (states[next].columns.size() > cacheBudget) continue;
                 if (Thread.currentThread().isInterrupted()) throw new IOException("Preview scan cancelled.");
-                previews.put(dimensionId, buildPreviewData(states[dimensionId], dimensionId, player));
+                previews.put(next, buildPreviewData(states[next], next, player));
+                cacheBudget -= states[next].columns.size();
             }
             return previews;
         } catch (RuntimeException exception) {
@@ -204,7 +218,7 @@ loader = r'''    private void loadWorldPreview() {
         if (previous != null) previous.cancel(true);
 
         BedrockWorldPreview.PreviewData cached = previewCache.get(dimensionId);
-        boolean detailedAlreadyCached = detailReadyDimensions.contains(dimensionId);
+        boolean detailedAlreadyCached = detailReadyDimensions.contains(dimensionId) || cached.getChunkCount() == 0;
         if (cached != null) {
             previewStatus.setText(detailedAlreadyCached
                     ? "Showing cached preview…"
@@ -302,7 +316,10 @@ loader = r'''    private void loadWorldPreview() {
         for (int dimension = 0; dimension < 3; dimension++) {
             if (dimension == detailedDimension || detailReadyDimensions.contains(dimension)) continue;
             BedrockWorldPreview.PreviewData quick = allPreviews.get(dimension);
-            if (quick != null) previewCache.putIfAbsent(dimension, quick);
+            if (quick != null) {
+                previewCache.putIfAbsent(dimension, quick);
+                if (quick.getChunkCount() == 0) detailReadyDimensions.add(dimension);
+            }
         }
 
         int totalChunks = 0;
