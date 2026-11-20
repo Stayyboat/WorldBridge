@@ -74,3 +74,19 @@ s = s.replace(old, new)
 
 p.write_text(s)
 print("Made dimension tabs touch-responsive with parent hit-target support, explicit busy feedback and accessible selected state.")
+
+# Re-enable/disable dimension tabs whenever world load or busy state changes.
+old = '''        resetButton.setAlpha(worldLoaded && !busy ? 1f : 0.48f);
+    }
+
+    private String friendlyMessage'''
+new = '''        resetButton.setAlpha(worldLoaded && !busy ? 1f : 0.48f);
+        // Tabs start disabled before a world exists; refresh their state after import,
+        // workspace restore, and every operation that toggles busy.
+        updateDimensionTabs(selectedDimension);
+    }
+
+    private String friendlyMessage'''
+if old not in s:
+    raise SystemExit("Could not find updateButtons block for the dimension-tab state refresh.")
+s = s.replace(old, new)
