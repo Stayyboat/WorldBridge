@@ -84,5 +84,15 @@ for old, new in {
 }.items():
     s = s.replace(old, new)
 
+# Re-theme export workflow actions that retained the original emerald fills.
+# Match the lavender primary-button treatment with a charcoal foreground.
+for old, new in {
+    'actionButton("Export .mcworld", 0xFF1B3B2B, TEXT)': 'actionButton("Export .mcworld", ACCENT, BG)',
+    'actionButton("Open saved world", 0xFF1B3B2B, TEXT)': 'actionButton("Open saved world", ACCENT, BG)',
+    'actionButton("Restore original copy", 0xFF1B3B2B, TEXT)': 'actionButton("Restore original copy", ACCENT, BG)',
+}.items():
+    if old not in s:
+        raise SystemExit("Expected old green export button style not found: " + old)
+    s = s.replace(old, new)
 p.write_text(s)
 print("Refined the bottom navigation into a floating, spring-animated capsule inspired by the supplied Streak reference.")
