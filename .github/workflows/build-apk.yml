@@ -32,6 +32,13 @@ jobs:
           test -f settings.gradle.kts || { echo "WorldBridge source is missing. Upload the source archive or extracted project files."; exit 1; }
           # Fix a Java Android API typo in the uploaded source archive.
           sed -i "s/setTextAllCaps(/setAllCaps(/g" app/src/main/java/com/worldbridge/app/MainActivity.java
+          # Install the block-resolution map renderer and saved-player marker.
+          if [ -f renderer_patch.zip.b64 ]; then
+            base64 -d renderer_patch.zip.b64 > /tmp/worldbridge-renderer-patch.zip
+            unzip -oq /tmp/worldbridge-renderer-patch.zip -d .
+          fi
+          sed -i 's/versionCode = 2/versionCode = 3/' app/build.gradle.kts
+          sed -i 's/versionName = "0.2.0"/versionName = "0.3.0"/' app/build.gradle.kts
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
