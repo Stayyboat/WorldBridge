@@ -39,8 +39,11 @@ jobs:
           base64 -d /tmp/renderer_patch.b64 > /tmp/worldbridge-renderer-patch.zip
           unzip -tq /tmp/worldbridge-renderer-patch.zip
           unzip -oq /tmp/worldbridge-renderer-patch.zip -d .
-          sed -i 's/versionCode = 2/versionCode = 3/' app/build.gradle.kts
-          sed -i 's/versionName = "0.2.0"/versionName = "0.3.0"/' app/build.gradle.kts
+          # Fast preview path: avoid decoding every subchunk palette in a large world.
+          # Palette decoding was keeping the preview worker busy before the first map appeared.
+          sed -i 's/} else if (isSubChunkKey(key, dimensionId)) {/} else if (false) { \/\/ fast-preview mode: defer expensive subchunk palette decoding/' engine/src/main/java/com/worldbridge/engine/BedrockWorldPreview.java
+          sed -i 's/versionCode = 2/versionCode = 4/' app/build.gradle.kts
+          sed -i 's/versionName = "0.2.0"/versionName = "0.3.1"/' app/build.gradle.kts
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
