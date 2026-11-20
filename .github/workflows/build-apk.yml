@@ -33,10 +33,12 @@ jobs:
           # Fix a Java Android API typo in the uploaded source archive.
           sed -i "s/setTextAllCaps(/setAllCaps(/g" app/src/main/java/com/worldbridge/app/MainActivity.java
           # Install the block-resolution map renderer and saved-player marker.
-          if [ -f renderer_patch.zip.b64 ]; then
-            base64 -d renderer_patch.zip.b64 > /tmp/worldbridge-renderer-patch.zip
-            unzip -oq /tmp/worldbridge-renderer-patch.zip -d .
-          fi
+          # The source patch is split into small text fragments to keep GitHub API commits reliable.
+          cat renderer_patch.part1.b64 renderer_patch.part2.b64 renderer_patch.part3.b64 renderer_patch.part4.b64 renderer_patch.part5.b64 renderer_patch.part6.b64 > /tmp/renderer_patch.b64
+          test "$(wc -c < /tmp/renderer_patch.b64)" -eq 18140
+          base64 -d /tmp/renderer_patch.b64 > /tmp/worldbridge-renderer-patch.zip
+          unzip -tq /tmp/worldbridge-renderer-patch.zip
+          unzip -oq /tmp/worldbridge-renderer-patch.zip -d .
           sed -i 's/versionCode = 2/versionCode = 3/' app/build.gradle.kts
           sed -i 's/versionName = "0.2.0"/versionName = "0.3.0"/' app/build.gradle.kts
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
