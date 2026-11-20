@@ -32,6 +32,8 @@ jobs:
           test -f settings.gradle.kts || { echo "WorldBridge source is missing. Upload the source archive or extracted project files."; exit 1; }
           # Fix a Java Android API typo in the uploaded source archive.
           sed -i "s/setTextAllCaps(/setAllCaps(/g" app/src/main/java/com/worldbridge/app/MainActivity.java
+          # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
+          sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
