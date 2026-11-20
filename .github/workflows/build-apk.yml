@@ -44,12 +44,14 @@ jobs:
           python3 scripts/optimize_preview.py
           # Discover Nether/End chunk records by exact dimension ID and use dimension-aware surfaces.
           python3 scripts/optimize_dimensions.py
+          # Progressive previews, dimension cache/warm-up, cancellable scans and instant trim refresh.
+          python3 scripts/optimize_preview_pipeline.py
           # Cache each visible chunk as a small bitmap; draw only the viewport and cap memory use.
           python3 scripts/optimize_view.py
           # Use a low-detail overview while zoomed out and cached 32x32 chunk composites at close zoom.
           python3 scripts/optimize_view_v2.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 9/' app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.4.4"/' app/build.gradle.kts
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 10/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.4.5"/' app/build.gradle.kts
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
