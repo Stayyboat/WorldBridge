@@ -82,6 +82,7 @@ new = """    private static int columnKeyLength(int dimensionId) {
 
     private static boolean isColumnVersionKey(byte[] key, int dimensionId) {
         if (key.length != columnKeyLength(dimensionId)) return false;
+        if (dimensionId != 0 && readIntLE(key, 8) != dimensionId) return false;
         int type = key[key.length - 1] & 0xFF;
         return type == (VERSION & 0xFF) || type == (LEGACY_VERSION & 0xFF)
                 || type == (LEGACY_VERSION_2 & 0xFF);
@@ -89,6 +90,7 @@ new = """    private static int columnKeyLength(int dimensionId) {
 
     private static boolean isColumnTerrainKey(byte[] key, int dimensionId) {
         if (key.length != columnKeyLength(dimensionId)) return false;
+        if (dimensionId != 0 && readIntLE(key, 8) != dimensionId) return false;
         int type = key[key.length - 1] & 0xFF;
         return type == (DATA_3D & 0xFF) || type == (VERSION & 0xFF)
                 || type == (DATA_2D & 0xFF) || type == (DATA_2D_LEGACY & 0xFF)
@@ -99,6 +101,7 @@ new = """    private static int columnKeyLength(int dimensionId) {
     private static boolean isSubChunkKey(byte[] key, int dimensionId) {
         int expected = columnKeyLength(dimensionId) + 1;
         return key.length == expected
+                && (dimensionId == 0 || readIntLE(key, 8) == dimensionId)
                 && (key[key.length - 2] & 0xFF) == (SUB_CHUNK_PREFIX & 0xFF);
     }
 """
