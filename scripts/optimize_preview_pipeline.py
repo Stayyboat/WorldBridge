@@ -66,7 +66,7 @@ new = '''                while (iterator.hasNext()) {
                         if (progressListener != null && columns.size() >= nextProgressAt) {
                             PreviewData partial = createCoveragePreview(builders, minX, maxX, minZ, maxZ, dimensionId);
                             progressListener.onProgress(partial, columns.size());
-                            nextProgressAt += 1024;
+                            nextProgressAt = Integer.MAX_VALUE;
                         }
                     }
                     if (isColumnVersionKey(key, dimensionId)) builder.hasVersion = true;
