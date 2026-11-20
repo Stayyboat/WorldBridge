@@ -113,7 +113,7 @@ start = s.index("    private static void applySubChunkLayers(")
 end = s.index("\n    private static void decodeLegacySubChunk", start)
 apply_method = """    private static void applySubChunkLayers(int subChunkY, BlockLayer[] layers, TileBuilder builder) {
         int baseY = subChunkY * 16;
-        boolean floorView = builder.floorSurface;
+        boolean floorView = false; // Nether is also viewed from above; ignore its bedrock roof instead.
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
                 int cell = z * 16 + x;
@@ -132,7 +132,7 @@ apply_method = """    private static void applySubChunkLayers(int subChunkY, Blo
                     for (int layer = layers.length - 1; layer >= 0; layer--) {
                         BlockLayer storage = layers[layer];
                         if (storage == null) continue;
-                        visibleColor = storage.colorAt(index, x, z, worldY, floorView);
+                        visibleColor = storage.colorAt(index, x, z, worldY, builder.ignoreBedrock);
                         if (visibleColor != 0) break;
                     }
                     if (visibleColor != 0) {
@@ -157,17 +157,16 @@ legacy_method = """    private static void decodeLegacySubChunk(ByteBuffer in, i
         byte[] meta = new byte[2048]; in.get(meta);
         for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) {
             int cell = z * 16 + x;
-            int firstY = builder.floorSurface ? 0 : 15;
-            int endY = builder.floorSurface ? 16 : -1;
-            int step = builder.floorSurface ? 1 : -1;
+            int firstY = 15;
+            int endY = -1;
+            int step = -1;
             for (int y = firstY; y != endY; y += step) {
                 int index = (x << 8) | (z << 4) | y;
                 int id = ids[index] & 0xFF;
-                if (id == 0 || (builder.floorSurface && id == 7)) continue;
+                if (id == 0 || (builder.ignoreBedrock && id == 7)) continue;
                 int data = ((meta[index >>> 1] & 0xFF) >>> ((index & 1) * 4)) & 15;
                 int worldY = subChunkY * 16 + y;
-                boolean better = builder.floorSurface
-                        ? worldY < builder.surfaceY[cell] : worldY > builder.surfaceY[cell];
+                boolean better = worldY > builder.surfaceY[cell];
                 if (better) {
                     builder.surfaceY[cell] = worldY;
                     builder.colors[cell] = legacyBlockColor(id, data, x, z, worldY);
@@ -248,11 +247,13 @@ new = """    private static final class TileBuilder {
         final int[] surfaceY = new int[256];
         final boolean[] seen = new boolean[256];
         final boolean floorSurface;
+        final boolean ignoreBedrock;
         int surfaceCount;
         boolean hasVersion;
         TileBuilder(int dimensionId) {
-            floorSurface = dimensionId == 1;
-            Arrays.fill(surfaceY, floorSurface ? Integer.MAX_VALUE : Integer.MIN_VALUE);
+            floorSurface = false;
+            ignoreBedrock = dimensionId == 1;
+            Arrays.fill(surfaceY, Integer.MIN_VALUE);
         }
     }
 """
