@@ -66,5 +66,23 @@ s = s[:start] + new + s[end:]
 # Give the page a little extra bottom breathing room for the floating capsule.
 s = s.replace('content.setPadding(dp(18), dp(22), dp(18), dp(28));',
               'content.setPadding(dp(18), dp(22), dp(18), dp(38));')
+# Switch the visual system to charcoal grey with purple accents.
+for old, new in {
+    "0xFF071710": "0xFF151519",  # page background
+    "0xFF0C2017": "0xFF202026",  # navigation surface
+    "0xFF244A35": "0xFF3A3A45",  # borders
+    "0xFF10251C": "0xFF222229",  # cards
+    "0xFF183428": "0xFF2D2D36",  # secondary surfaces
+    "0xFF70E2A0": "0xFFB69CFF",  # purple accent
+    "0xFFE8F5EC": "0xFFF1EFF5",  # primary text
+    "0xFF9BB8A6": "0xFFA6A3AE",  # muted text
+    "0xE610251C": "0xE6222229",  # floating capsule
+    "0xFF315A42": "0xFF484452",  # capsule outline
+    "0xFF204A32": "0xFF49366F",  # selected tab
+    "0xFF397B52": "0xFF8060C4",  # selected tab outline
+    "0x0010251C": "0x00222229",  # transparent tab
+}.items():
+    s = s.replace(old, new)
+
 p.write_text(s)
 print("Refined the bottom navigation into a floating, spring-animated capsule inspired by the supplied Streak reference.")
