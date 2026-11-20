@@ -89,7 +89,7 @@ main = replace_once(main,
 ''', "", "prune helper copy")
 main = replace_once(main,
     'cleanupSavedDataToggle.setText("Also remove saved mobs, entities, dropped items & tile entities");',
-    'cleanupSavedDataToggle.setText("Remove mobs, entities, dropped items & block entities");',
+    'cleanupSavedDataToggle.setText("Include Entities");',
     "cleanup toggle copy")
 main = replace_once(main,
     '''        TextView cleanupHint = label("Targets only saved data tied to the selected chunks and dimension. Dedicated player save records are kept.", 12, MUTED, false);
