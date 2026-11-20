@@ -218,7 +218,7 @@ loader = r'''    private void loadWorldPreview() {
         if (previous != null) previous.cancel(true);
 
         BedrockWorldPreview.PreviewData cached = previewCache.get(dimensionId);
-        boolean detailedAlreadyCached = detailReadyDimensions.contains(dimensionId) || cached.getChunkCount() == 0;
+        boolean detailedAlreadyCached = cached != null && (detailReadyDimensions.contains(dimensionId) || cached.getChunkCount() == 0);
         if (cached != null) {
             previewStatus.setText(detailedAlreadyCached
                     ? "Showing cached preview…"
