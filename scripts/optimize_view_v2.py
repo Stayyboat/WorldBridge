@@ -85,23 +85,34 @@ methods = r'''    /** Builds a compact low-zoom image. Call from the background 
         for (Map.Entry<Long, int[]> entry : data.tiles.entrySet()) {
             long key = entry.getKey();
             int cx = (int) (key >> 32), cz = (int) key;
-            int px = (int) (((long) cx - data.minChunkX) * width / worldW);
-            int py = (int) (((long) cz - data.minChunkZ) * height / worldH);
-            if (px < 0 || px >= width || py < 0 || py >= height) continue;
+            long relX = (long) cx - data.minChunkX;
+            long relZ = (long) cz - data.minChunkZ;
+            int px0 = (int) (relX * width / worldW);
+            int px1 = (int) (((relX + 1L) * width + worldW - 1L) / worldW);
+            int py0 = (int) (relZ * height / worldH);
+            int py1 = (int) (((relZ + 1L) * height + worldH - 1L) / worldH);
+            px0 = Math.max(0, Math.min(width - 1, px0));
+            py0 = Math.max(0, Math.min(height - 1, py0));
+            px1 = Math.max(px0 + 1, Math.min(width, px1));
+            py1 = Math.max(py0 + 1, Math.min(height, py1));
             int color = averageTile(entry.getValue());
-            int index = py * width + px;
-            int count = counts[index] & 0xFF;
-            if (count == 0) {
-                pixels[index] = color;
-                counts[index] = 1;
-            } else {
-                int old = pixels[index];
-                int nextCount = Math.min(255, count + 1);
-                int r = ((((old >>> 16) & 255) * count) + ((color >>> 16) & 255)) / (count + 1);
-                int g = ((((old >>> 8) & 255) * count) + ((color >>> 8) & 255)) / (count + 1);
-                int b = (((old & 255) * count) + (color & 255)) / (count + 1);
-                pixels[index] = 0xFF000000 | (r << 16) | (g << 8) | b;
-                counts[index] = (byte) nextCount;
+            for (int py = py0; py < py1; py++) {
+                for (int px = px0; px < px1; px++) {
+                    int index = py * width + px;
+                    int count = counts[index] & 0xFF;
+                    if (count == 0) {
+                        pixels[index] = color;
+                        counts[index] = 1;
+                    } else {
+                        int old = pixels[index];
+                        int nextCount = Math.min(255, count + 1);
+                        int red = ((((old >>> 16) & 255) * count) + ((color >>> 16) & 255)) / (count + 1);
+                        int green = ((((old >>> 8) & 255) * count) + ((color >>> 8) & 255)) / (count + 1);
+                        int blue = (((old & 255) * count) + (color & 255)) / (count + 1);
+                        pixels[index] = 0xFF000000 | (red << 16) | (green << 8) | blue;
+                        counts[index] = (byte) nextCount;
+                    }
+                }
             }
         }
         return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888);
