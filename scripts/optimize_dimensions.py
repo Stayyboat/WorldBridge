@@ -225,8 +225,12 @@ s = s.replace(old, new)
 
 # Give Nether and End their own terrain palette treatment.
 s = s.replace(
+    '        else if (n.contains("sandstone") || n.contains("sand")) color = 0xFFD7C17A;\n',
+    '        else if (n.contains("end_stone")) color = 0xFFD9D08C;\n        else if (n.contains("sandstone") || n.contains("sand")) color = 0xFFD7C17A;\n'
+)
+s = s.replace(
     '        else if (n.contains("obsidian")) color = 0xFF38304D;\n',
-    '        else if (n.contains("obsidian")) color = 0xFF38304D;\n        else if (n.contains("end_stone")) color = 0xFFD9D08C;\n        else if (n.contains("purpur")) color = 0xFFAA82B5;\n        else if (n.contains("chorus")) color = 0xFF795A91;\n        else if (n.contains("end_rod")) color = 0xFFD9DCE0;\n        else if (n.contains("end_portal")) color = 0xFF27233F;\n        else if (n.contains("shroomlight") || n.contains("glowstone")) color = 0xFFE5B56B;\n'
+    '        else if (n.contains("obsidian")) color = 0xFF38304D;\n        else if (n.contains("purpur")) color = 0xFFAA82B5;\n        else if (n.contains("chorus")) color = 0xFF795A91;\n        else if (n.contains("end_rod")) color = 0xFFD9DCE0;\n        else if (n.contains("end_portal")) color = 0xFF27233F;\n        else if (n.contains("shroomlight") || n.contains("glowstone")) color = 0xFFE5B56B;\n'
 )
 
 # Tile builders store their surface direction and initialise the correct extreme.
