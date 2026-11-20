@@ -90,3 +90,6 @@ new = '''        resetButton.setAlpha(worldLoaded && !busy ? 1f : 0.48f);
 if old not in s:
     raise SystemExit("Could not find updateButtons block for the dimension-tab state refresh.")
 s = s.replace(old, new)
+
+p.write_text(s)
+print("Refreshed dimension-tab enabled state after world import and busy-state changes.")
