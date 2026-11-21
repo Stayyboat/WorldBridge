@@ -78,6 +78,7 @@ methods = """    private void confirmDeleteWorld() {
                     lastExportUri = null;
                     selectedDimension = 0;
                     selectionMinX = selectionMinZ = selectionMaxX = selectionMaxZ = 0;
+                    syncManualInputs();
                     getSharedPreferences("worldbridge", MODE_PRIVATE)
                             .edit().remove("world_name").apply();
                     if (dimensionSpinner != null) dimensionSpinner.setSelection(0);
