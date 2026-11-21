@@ -75,8 +75,10 @@ for label in ('Overworld', 'Nether', 'End', 'Include Entities', 'Delete world',
 require('removeSavedData' in pruner and 'ACTOR_DIGEST_PREFIX' in pruner,
         'saved entities cleanup path is missing')
 require('withoutRegion' in engine and 'drawPlayerMarker' in preview
-        and 'drawEndOriginMarker' in preview and 'endIslandColorAtBlock' in preview,
-        'player marker / End island / origin marker source appears incomplete')
+        and 'drawEndOriginMarker' in preview,
+        'player marker / End origin marker source appears incomplete')
+require('endIslandColorAtBlock' not in preview and 'islandColorAtBlock' not in preview,
+        'synthetic End island overlay is still present')
 for token in ('red_mushroom_block', 'brown_mushroom_block', '0xFF6A5D62', '0xFF9A7653'):
     require(token in engine, f'expected block palette rule missing: {token}')
 require('0xFFB84C4C' in engine and '0xFF9A6847' in engine,
