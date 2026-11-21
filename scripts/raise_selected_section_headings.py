@@ -3,24 +3,14 @@ from pathlib import Path
 MAIN = Path("app/src/main/java/com/worldbridge/app/MainActivity.java")
 source = MAIN.read_text()
 
-needle = '''        view.setPadding(0, 0, 0, dp(4));
+expected = """        view.setPadding(0, dp(6), 0, dp(6));
         return view;
-'''
-replacement = '''        view.setPadding(0, 0, 0, dp(4));
-        if ("World".equals(value)
-                || "Prune".equals(value)
-                || "Review and Prune".equals(value)
-                || "Export".equals(value)) {
-            view.setTranslationY(-dp(3));
-        }
-        return view;
-'''
-
-if source.count(needle) != 1:
+"""
+if source.count(expected) != 1:
     raise SystemExit(
-        "Expected the shared sectionTitle padding/return block exactly once; "
-        f"found {source.count(needle)}"
+        "Expected the shared sectionTitle helper to use equal 6dp top/bottom padding."
     )
+if "view.setTranslationY(-dp(3))" in source:
+    raise SystemExit("A per-heading vertical offset remains; headings must share one baseline.")
 
-MAIN.write_text(source.replace(needle, replacement, 1))
-print("Raised only World, Prune/Review and Prune, and Export headings by 3dp.")
+print("Confirmed equal 6dp top/bottom spacing for every section heading, with no individual offsets.")

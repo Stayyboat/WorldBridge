@@ -30,8 +30,8 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 46' in gradle and 'versionName = "1.0"' in gradle,
-        'version must be code 44 / name 1.0')
+require('versionCode = 47' in gradle and 'versionName = "1.0"' in gradle,
+        'version must be code 47 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
 for node in manifest.iter():
@@ -56,7 +56,11 @@ require('importButton.setTranslationY' not in main,
 require('dimensionSpinner' not in main and 'Spinner' not in main,
         'unused hidden dimension spinner remains')
 
-# Typography, edge insets, gesture safety, and theme consistency.
+# Typography, edge insets, gesture safety, balanced heading spacing, and theme consistency.
+require('view.setPadding(0, dp(6), 0, dp(6));' in main,
+        'section headings do not have equal 6dp top/bottom spacing')
+require('view.setTranslationY(-dp(3))' not in main,
+        'per-heading vertical offsets are still uneven')
 require('WindowInsets.Type.systemBars()' in main and 'WindowInsets.Type.ime()' in main,
         'system-bar / keyboard inset handling is missing')
 require('setIncludeFontPadding(false)' in main and 'button.setGravity(Gravity.CENTER)' in main,
@@ -103,4 +107,4 @@ for density in ('mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi', 'nodpi'):
     require((ROOT / f'app/src/main/res/mipmap-{density}/ic_launcher.png').is_file(),
             f'launcher icon missing for {density}')
 
-print('Chunkly 1.0 release preflight passed: identity, branding, World layout, UI metrics, insets, palette, feature-preservation markers, import caps, pruning accounting, and launcher assets.');
+print('Chunkly 1.0 release preflight passed: identity, branding, World layout, balanced section-heading spacing, UI metrics, insets, palette, feature-preservation markers, import caps, pruning accounting, and launcher assets.');

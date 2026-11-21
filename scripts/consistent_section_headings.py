@@ -28,7 +28,7 @@ method = '''    private TextView sectionTitle(String value) {
         view.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         view.setIncludeFontPadding(false);
         view.setLetterSpacing(0.01f);
-        view.setPadding(0, 0, 0, dp(4));
+        view.setPadding(0, dp(6), 0, dp(6));
         return view;
     }
 
