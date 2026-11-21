@@ -194,6 +194,16 @@ if 'private void requestParentIntercept(boolean disallow)' not in preview:
     public boolean onTouchEvent(MotionEvent event) {''', 'safe parent gesture helper')
 PREVIEW.write_text(preview)
 
+# Allow significantly closer inspection while preserving the original fit scale.
+preview = PREVIEW.read_text()
+preview = replace_once(
+    preview,
+    "float next = Math.max(baseScale * 0.55f, Math.min(baseScale * 24f, scale * detector.getScaleFactor()));",
+    "float next = Math.max(baseScale * 0.55f, Math.min(baseScale * 64f, scale * detector.getScaleFactor()));",
+    "maximum preview zoom"
+)
+PREVIEW.write_text(preview)
+
 # Bound both the compressed .mcworld copy and decompressed contents; remove partial copies.
 files = FILES.read_text()
 files = replace_once(files,
