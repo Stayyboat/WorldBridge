@@ -30,7 +30,7 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 47' in gradle and 'versionName = "1.0"' in gradle,
+require('versionCode = 48' in gradle and 'versionName = "1.0"' in gradle,
         'version must be code 47 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
@@ -57,8 +57,8 @@ require('dimensionSpinner' not in main and 'Spinner' not in main,
         'unused hidden dimension spinner remains')
 
 # Typography, edge insets, gesture safety, balanced heading spacing, and theme consistency.
-require('view.setPadding(0, dp(6), 0, dp(6));' in main,
-        'section headings do not have equal 6dp top/bottom spacing')
+require('view.setPadding(0, dp(2), 0, dp(2));' in main,
+        'section headings do not have equal 2dp top/bottom spacing')
 require('view.setTranslationY(-dp(3))' not in main,
         'per-heading vertical offsets are still uneven')
 require('WindowInsets.Type.systemBars()' in main and 'WindowInsets.Type.ime()' in main,

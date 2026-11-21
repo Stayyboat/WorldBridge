@@ -145,7 +145,7 @@ main = main.replace('''        setContentView(scroll);
         animateCards(content);''')
 heading_metrics = '''        view.setIncludeFontPadding(false);
         view.setLetterSpacing(0.01f);
-        view.setPadding(0, dp(6), 0, dp(6));'''
+        view.setPadding(0, dp(2), 0, dp(2));'''
 if main.count(heading_metrics) != 1:
     raise SystemExit('Shared section heading metrics are not using balanced 6dp top/bottom padding.')
 

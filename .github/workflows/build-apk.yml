@@ -61,7 +61,7 @@ jobs:
           python3 scripts/raise_selected_section_headings.py
           python3 scripts/lower_world_import_content.py
           python3 scripts/chunkly_release_polish.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 47/' app/build.gradle.kts
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 48/' app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "1.0"/' app/build.gradle.kts
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
           python3 -m py_compile scripts/chunkly_release_polish.py scripts/verify_chunkly_release.py
@@ -112,9 +112,9 @@ jobs:
           "$tools/apksigner" verify --verbose "$debug_apk"
           debug_badging="$("$tools/aapt" dump badging "$debug_apk")"
           release_badging="$("$tools/aapt" dump badging "$release_apk")"
-          grep -F "package: name='com.worldbridge.app' versionCode='47' versionName='1.0'" <<< "$debug_badging"
+          grep -F "package: name='com.worldbridge.app' versionCode='48' versionName='1.0'" <<< "$debug_badging"
           grep -F "application-label:'Chunkly'" <<< "$debug_badging"
-          grep -F "package: name='com.worldbridge.app' versionCode='47' versionName='1.0'" <<< "$release_badging"
+          grep -F "package: name='com.worldbridge.app' versionCode='48' versionName='1.0'" <<< "$release_badging"
           grep -F "application-label:'Chunkly'" <<< "$release_badging"
           if "$tools/apksigner" verify "$release_apk"; then
             echo "Release candidate unexpectedly contains a signature; check the signing configuration."
