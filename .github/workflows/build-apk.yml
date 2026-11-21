@@ -104,6 +104,25 @@ jobs:
       - name: Build debug QA APK and unsigned release APK
         run: gradle --no-daemon clean assembleDebug assembleRelease
 
+      - name: Verify APK signatures and compiled package metadata
+        run: |
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          debug_apk="app/build/outputs/apk/debug/app-debug.apk"
+          release_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          "$tools/apksigner" verify --verbose "$debug_apk"
+          debug_badging="$("$tools/aapt" dump badging "$debug_apk")"
+          release_badging="$("$tools/aapt" dump badging "$release_apk")"
+          grep -F "package: name='com.worldbridge.app' versionCode='44' versionName='1.0'" <<< "$debug_badging"
+          grep -F "application-label:'Chunkly'" <<< "$debug_badging"
+          grep -F "package: name='com.worldbridge.app' versionCode='44' versionName='1.0'" <<< "$release_badging"
+          grep -F "application-label:'Chunkly'" <<< "$release_badging"
+          if "$tools/apksigner" verify "$release_apk"; then
+            echo "Release candidate unexpectedly contains a signature; check the signing configuration."
+            exit 1
+          else
+            echo "Release candidate is unsigned as intended; publisher signing is still required."
+          fi
+
       - name: Upload debug QA APK
         uses: actions/upload-artifact@v4
         with:
