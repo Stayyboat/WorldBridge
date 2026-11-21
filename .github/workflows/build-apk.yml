@@ -1,4 +1,4 @@
-name: Build WorldBridge APK
+name: Build Chunkly APK
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Unpack WorldBridge source archive
+      - name: Unpack Android source and apply Chunkly release polish
         run: |
           archive="$(find . -maxdepth 1 -type f -name 'WorldBridgeAndroid-preview-source*.zip' | head -n 1)"
           if [ -n "$archive" ]; then
@@ -29,7 +29,7 @@ jobs:
             fi
             cp -a "$project_root"/. .
           fi
-          test -f settings.gradle.kts || { echo "WorldBridge source is missing. Upload the source archive or extracted project files."; exit 1; }
+          test -f settings.gradle.kts || { echo "Chunkly Android source is missing. Check the source archive."; exit 1; }
           sed -i "s/setTextAllCaps(/setAllCaps(/g" app/src/main/java/com/worldbridge/app/MainActivity.java
           cat renderer_patch.part1.b64 renderer_patch.part2.b64 renderer_patch.part3.b64 renderer_patch.part4.b64 renderer_patch.part5.b64 renderer_patch.part6.b64 > /tmp/renderer_patch.b64
           test "$(wc -c < /tmp/renderer_patch.b64)" -eq 18140
@@ -60,17 +60,21 @@ jobs:
           python3 scripts/add_mushroom_block_preview_colors.py
           python3 scripts/raise_selected_section_headings.py
           python3 scripts/lower_world_import_content.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 43/' app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.28"/' app/build.gradle.kts
+          python3 scripts/chunkly_release_polish.py
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 44/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "1.0"/' app/build.gradle.kts
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
+          python3 -m py_compile scripts/chunkly_release_polish.py scripts/verify_chunkly_release.py
+          python3 scripts/verify_chunkly_release.py
 
       - name: Upload unpacked source for review
         uses: actions/upload-artifact@v4
         with:
-          name: WorldBridge-source-snapshot
+          name: Chunkly-source-snapshot
           path: |
-            app/src/main/java/**/*.java
-            engine/src/main/java/**/*.java
+            app/src/main/**
+            engine/src/main/**
+            scripts/*.py
             app/build.gradle.kts
             engine/build.gradle.kts
             build.gradle.kts
@@ -97,12 +101,19 @@ jobs:
           sed -i "s/compileSdk = 37/compileSdk = 36/" app/build.gradle.kts
           sed -i 's/version "9.6.0"/version "9.5.1"/' build.gradle.kts
 
-      - name: Build debug APK
-        run: gradle --no-daemon assembleDebug
+      - name: Build debug QA APK and unsigned release APK
+        run: gradle --no-daemon clean assembleDebug assembleRelease
 
-      - name: Upload APK artifact
+      - name: Upload debug QA APK
         uses: actions/upload-artifact@v4
         with:
-          name: WorldBridge-debug-apk
+          name: Chunkly-1.0-debug-qa
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Upload unsigned release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chunkly-1.0-release-unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
