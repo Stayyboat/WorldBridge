@@ -60,8 +60,8 @@ jobs:
           python3 scripts/add_mushroom_block_preview_colors.py
           python3 scripts/raise_selected_section_headings.py
           python3 scripts/lower_world_import_content.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 41/' app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.26"/' app/build.gradle.kts
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 42/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.27"/' app/build.gradle.kts
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
       - name: Upload unpacked source for review
