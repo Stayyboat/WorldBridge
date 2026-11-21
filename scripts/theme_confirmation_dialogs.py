@@ -107,6 +107,7 @@ helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog, S
 
             styleDialogButton(dialog.getButton(AlertDialog.BUTTON_NEGATIVE), false);
             styleDialogButton(dialog.getButton(AlertDialog.BUTTON_POSITIVE), true);
+            spaceDialogButtons(dialog);
         });
         dialog.show();
         return dialog;
@@ -127,6 +128,35 @@ helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog, S
             }
         }
         return null;
+    }
+
+    private void spaceDialogButtons(AlertDialog dialog) {
+        Button negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        if (negative == null || positive == null) return;
+
+        ViewGroup buttonBar = (ViewGroup) negative.getParent();
+        if (buttonBar == null || positive.getParent() != buttonBar) return;
+
+        if (buttonBar instanceof LinearLayout) {
+            ((LinearLayout) buttonBar).setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        }
+        buttonBar.setPadding(dp(16), buttonBar.getPaddingTop(), dp(16), buttonBar.getPaddingBottom());
+
+        ViewGroup.MarginLayoutParams negativeParams =
+                (ViewGroup.MarginLayoutParams) negative.getLayoutParams();
+        negativeParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        negativeParams.setMargins(dp(5), negativeParams.topMargin, dp(5), negativeParams.bottomMargin);
+        negative.setLayoutParams(negativeParams);
+
+        ViewGroup.MarginLayoutParams positiveParams =
+                (ViewGroup.MarginLayoutParams) positive.getLayoutParams();
+        positiveParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        positiveParams.setMargins(dp(5), positiveParams.topMargin, dp(5), positiveParams.bottomMargin);
+        positive.setLayoutParams(positiveParams);
+
+        negative.setMinWidth(dp(76));
+        positive.setMinWidth(dp(76));
     }
 
     private void styleDialogButton(Button button, boolean primary) {
