@@ -30,59 +30,36 @@ jobs:
             cp -a "$project_root"/. .
           fi
           test -f settings.gradle.kts || { echo "WorldBridge source is missing. Upload the source archive or extracted project files."; exit 1; }
-          # Fix a Java Android API typo in the uploaded source archive.
           sed -i "s/setTextAllCaps(/setAllCaps(/g" app/src/main/java/com/worldbridge/app/MainActivity.java
-          # Install the block-resolution map renderer and saved-player marker.
-          # The source patch is split into small text fragments to keep GitHub API commits reliable.
           cat renderer_patch.part1.b64 renderer_patch.part2.b64 renderer_patch.part3.b64 renderer_patch.part4.b64 renderer_patch.part5.b64 renderer_patch.part6.b64 > /tmp/renderer_patch.b64
           test "$(wc -c < /tmp/renderer_patch.b64)" -eq 18140
           base64 -d /tmp/renderer_patch.b64 > /tmp/worldbridge-renderer-patch.zip
           unzip -tq /tmp/worldbridge-renderer-patch.zip
           unzip -oq /tmp/worldbridge-renderer-patch.zip -d .
-          # Re-enable real subchunk sampling with palette lookup cached once per palette.
-          # Draw a checkerboard for missing chunks and add chunk coordinate labels at close zoom.
           python3 scripts/optimize_preview.py
-          # Discover Nether/End chunk records by exact dimension ID and use dimension-aware surfaces.
           python3 scripts/optimize_dimensions.py
-          # Cache each visible chunk as a small bitmap; draw only the viewport and cap memory use.
           python3 scripts/optimize_view.py
-          # Use a low-detail overview while zoomed out and cached 32x32 chunk composites at close zoom.
           python3 scripts/optimize_view_v2.py
-          # Progressive previews, dimension cache/warm-up, cancellable scans and instant trim refresh.
           python3 scripts/optimize_preview_pipeline.py
-          # One LevelDB pass for all dimensions; instantly show cached coarse maps and refine on first visit.
           python3 scripts/optimize_fast_preview_scan.py
-          # Dark emerald visual refresh, workflow bottom navigation and subtle motion.
           python3 scripts/redesign_ui.py
-          # Apply the Streak-inspired floating capsule with charcoal-grey surfaces and purple highlights.
           python3 scripts/refine_streak_style.py
-          # Replace the dimension dropdown with a horizontal animated segmented control.
           python3 scripts/segmented_dimensions.py
-          # Fix hidden-Spinner selection: visible dimension tabs now own the active dimension.
           python3 scripts/fix_dimension_selection.py
-          # Expand hit targets and provide explicit tap feedback for the three dimension tabs.
           python3 scripts/fix_dimension_tabs_v2.py
-          # Optional cleanup for legacy entities, modern actors, dropped items and tile entities.
           python3 scripts/prune_saved_data.py
-          # Perfectly centred symmetric chunk-grid launcher icons with matching purple tiles.
           python3 scripts/add_minimal_icon.py
-          # Remove onboarding/tutorial copy and tighten operational UI text.
           python3 scripts/professional_ui_copy.py
-          # Apply one consistent typography and spacing style to every section heading.
           python3 scripts/consistent_section_headings.py
-          # Remove the floating Home / Editor / Export navigation capsule after all UI patches.
           python3 scripts/remove_bottom_navigation.py
-          # Add a compact delete control for the currently imported world.
           python3 scripts/add_delete_world_button.py
-          # Match confirmation dialogs to the charcoal and lavender app theme.
           python3 scripts/theme_confirmation_dialogs.py
-          # Add the central End island overlay and a fixed 0,0 marker to its preview.
           python3 scripts/end_dimension_central_island.py
-          # Use the distinct muted grey-mauve surface colour of Mycelium, not Podzol brown.
           python3 scripts/fix_mycelium_preview_color.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 37/' app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.22"/' app/build.gradle.kts
-          # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
+          # Give red and brown mushroom blocks their own surface colours in the map preview.
+          python3 scripts/add_mushroom_block_preview_colors.py
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 38/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.23"/' app/build.gradle.kts
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
       - name: Upload unpacked source for review
