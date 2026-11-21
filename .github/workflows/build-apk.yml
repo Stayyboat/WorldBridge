@@ -113,9 +113,9 @@ jobs:
           "$tools/apksigner" verify --verbose "$debug_apk"
           debug_badging="$("$tools/aapt" dump badging "$debug_apk")"
           release_badging="$("$tools/aapt" dump badging "$release_apk")"
-          grep -F "package: name='com.worldbridge.app' versionCode='48' versionName='1.0'" <<< "$debug_badging"
+          grep -F "package: name='com.worldbridge.app' versionCode='49' versionName='1.0'" <<< "$debug_badging"
           grep -F "application-label:'Chunkly'" <<< "$debug_badging"
-          grep -F "package: name='com.worldbridge.app' versionCode='48' versionName='1.0'" <<< "$release_badging"
+          grep -F "package: name='com.worldbridge.app' versionCode='49' versionName='1.0'" <<< "$release_badging"
           grep -F "application-label:'Chunkly'" <<< "$release_badging"
           if "$tools/apksigner" verify "$release_apk"; then
             echo "Release candidate unexpectedly contains a signature; check the signing configuration."
