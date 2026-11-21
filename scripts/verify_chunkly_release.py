@@ -30,8 +30,8 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 50' in gradle and 'versionName = "1.0"' in gradle,
-        'version must be code 50 / name 1.0')
+require('versionCode = 51' in gradle and 'versionName = "1.0"' in gradle,
+        'version must be code 51 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
 for node in manifest.iter():
@@ -69,6 +69,12 @@ require('importCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main,
         'World card top inset is not reduced to 6dp')
 require('settingsCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main,
         'Dimension card top inset is not reduced to 6dp')
+require('addCardHeading(importCard, "World");' in main
+        and 'addCardHeading(settingsCard, "Dimension");' in main,
+        'World and Dimension do not use the shared aligned heading row')
+require('ViewGroup.LayoutParams.MATCH_PARENT, dp(28)' in main
+        and 'heading.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);' in main,
+        'World and Dimension heading rows are not identically aligned')
 require('view.setTranslationY(-dp(3))' not in main,
         'per-heading vertical offsets are still uneven')
 require('WindowInsets.Type.systemBars()' in main and 'WindowInsets.Type.ime()' in main,
