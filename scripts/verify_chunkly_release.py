@@ -30,8 +30,8 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 49' in gradle and 'versionName = "1.0"' in gradle,
-        'version must be code 49 / name 1.0')
+require('versionCode = 50' in gradle and 'versionName = "1.0"' in gradle,
+        'version must be code 50 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
 for node in manifest.iter():
@@ -65,6 +65,10 @@ require('selectionCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main
 require('exportCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main
         and 'exportTitleParams.bottomMargin = dp(6);' in main,
         'Export heading spacing is not compact and balanced')
+require('importCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main,
+        'World card top inset is not reduced to 6dp')
+require('settingsCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main,
+        'Dimension card top inset is not reduced to 6dp')
 require('view.setTranslationY(-dp(3))' not in main,
         'per-heading vertical offsets are still uneven')
 require('WindowInsets.Type.systemBars()' in main and 'WindowInsets.Type.ime()' in main,
