@@ -22,6 +22,7 @@ helper = """    private void addCardHeading(LinearLayout card, String value) {
         TextView heading = sectionTitle(value);
         heading.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         heading.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        heading.setTranslationY(2f);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(28));
         params.gravity = Gravity.START;

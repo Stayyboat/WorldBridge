@@ -30,8 +30,8 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 51' in gradle and 'versionName = "1.0"' in gradle,
-        'version must be code 51 / name 1.0')
+require('versionCode = 52' in gradle and 'versionName = "1.0"' in gradle,
+        'version must be code 52 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
 for node in manifest.iter():
@@ -72,6 +72,8 @@ require('settingsCard.setPadding(dp(15), dp(6), dp(15), dp(15));' in main,
 require('addCardHeading(importCard, "World");' in main
         and 'addCardHeading(settingsCard, "Dimension");' in main,
         'World and Dimension do not use the shared aligned heading row')
+require('heading.setTranslationY(2f);' in main,
+        'World and Dimension headings are not shifted down exactly 2 physical pixels')
 require('ViewGroup.LayoutParams.MATCH_PARENT, dp(28)' in main
         and 'heading.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);' in main,
         'World and Dimension heading rows are not identically aligned')
