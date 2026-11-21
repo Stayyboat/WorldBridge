@@ -56,6 +56,8 @@ jobs:
           python3 scripts/redesign_ui.py
           # Apply the Streak-inspired floating capsule with charcoal-grey surfaces and purple highlights.
           python3 scripts/refine_streak_style.py
+          # Remove the floating Home / Editor / Export navigation capsule.
+          python3 scripts/remove_bottom_navigation.py
           # Replace the dimension dropdown with a horizontal animated segmented control.
           python3 scripts/segmented_dimensions.py
           # Fix hidden-Spinner selection: visible dimension tabs now own the active dimension.
@@ -70,8 +72,8 @@ jobs:
           python3 scripts/professional_ui_copy.py
           # Apply one consistent typography and spacing style to every section heading.
           python3 scripts/consistent_section_headings.py
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 28/' app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.13"/' app/build.gradle.kts
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 29/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.5.14"/' app/build.gradle.kts
           # iq80 LevelDB uses Guava ThreadFactoryBuilder at runtime; package it explicitly.
           sed -i '/^dependencies {/a\    implementation("com.google.guava:guava:33.4.8-android")' app/build.gradle.kts
 
