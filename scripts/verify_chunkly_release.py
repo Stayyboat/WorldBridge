@@ -30,7 +30,7 @@ require(app is not None, 'manifest application element is missing')
 # Preserve the package ID so this is an in-place update of existing installs.
 require('applicationId = "com.worldbridge.app"' in gradle,
         'applicationId changed; existing installs/data would not upgrade safely')
-require('versionCode = 45' in gradle and 'versionName = "1.0"' in gradle,
+require('versionCode = 46' in gradle and 'versionName = "1.0"' in gradle,
         'version must be code 44 / name 1.0')
 require(app.get(ANDROID + 'label') == 'Chunkly', 'application label is not Chunkly')
 launcher_labels = []
@@ -67,10 +67,12 @@ require('private void requestParentIntercept(boolean disallow)' in preview,
         'safe touch-parent helper is missing')
 require('getParent().requestDisallowInterceptTouchEvent' not in preview,
         'unsafe direct parent touch call remains')
-require('Math.min(baseScale * 64f, scale * detector.getScaleFactor())' in preview,
-        'maximum preview zoom was not increased to 64x fit scale')
-require('Math.min(baseScale * 24f, scale * detector.getScaleFactor())' not in preview,
-        'old 24x preview zoom cap remains')
+require('preview.dimensionId == 0 ? 128f : 64f' in preview,
+        'Overworld-specific 128x zoom cap is missing')
+require('Math.min(baseScale * maxZoom, scale * detector.getScaleFactor())' in preview,
+        'dimension-aware zoom clamp is missing')
+require('Math.min(baseScale * 64f, scale * detector.getScaleFactor())' not in preview,
+        'old shared 64x preview zoom cap remains')
 
 # Confirm all existing capabilities from the frozen v0.5.23 feature set remain.
 for label in ('Overworld', 'Nether', 'End', 'Include Entities', 'Delete world',

@@ -199,7 +199,7 @@ preview = PREVIEW.read_text()
 preview = replace_once(
     preview,
     "float next = Math.max(baseScale * 0.55f, Math.min(baseScale * 24f, scale * detector.getScaleFactor()));",
-    "float next = Math.max(baseScale * 0.55f, Math.min(baseScale * 64f, scale * detector.getScaleFactor()));",
+    "float maxZoom = preview != null && preview.dimensionId == 0 ? 128f : 64f;\n                float next = Math.max(baseScale * 0.55f, Math.min(baseScale * maxZoom, scale * detector.getScaleFactor()));",
     "maximum preview zoom"
 )
 PREVIEW.write_text(preview)
