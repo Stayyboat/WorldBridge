@@ -6,17 +6,37 @@ source = MAIN.read_text()
 old = '''        importButton = actionButton("Import .mcworld", ACCENT, BG);
         importButton.setOnClickListener(v -> chooseWorld());
         importCard.addView(importButton, matchWrap());
+        worldStatus = label(worldName, 13, MUTED, false);
+        worldStatus.setPadding(0, dp(10), 0, 0);
+        importCard.addView(worldStatus);
+
+        LinearLayout worldActions = new LinearLayout(this);
 '''
 new = '''        importButton = actionButton("Import .mcworld", ACCENT, BG);
         importButton.setOnClickListener(v -> chooseWorld());
-        LinearLayout.LayoutParams importButtonParams = matchWrap();
-        importButtonParams.topMargin = dp(12);
-        importCard.addView(importButton, importButtonParams);
+        importCard.addView(importButton, matchWrap());
+        importButton.setTranslationY(dp(12));
+        worldStatus = label(worldName, 13, MUTED, false);
+        worldStatus.setPadding(0, dp(10), 0, 0);
+        importCard.addView(worldStatus);
+        worldStatus.setTranslationY(dp(12));
+
+        LinearLayout worldActions = new LinearLayout(this);
 '''
+if source.count(old) != 1:
+    raise SystemExit(f"Expected the World import/status block exactly once, found {source.count(old)}")
+source = source.replace(old, new, 1)
 
-count = source.count(old)
-if count != 1:
-    raise SystemExit(f"Expected one World import button block, found {count}")
+needle = '''        worldActions.addView(deleteWorldButton, deleteWorldParams);
+        importCard.addView(worldActions, matchWrap());
+'''
+replacement = '''        worldActions.addView(deleteWorldButton, deleteWorldParams);
+        importCard.addView(worldActions, matchWrap());
+        worldActions.setTranslationY(dp(12));
+'''
+if source.count(needle) != 1:
+    raise SystemExit(f"Expected the World actions row exactly once, found {source.count(needle)}")
+source = source.replace(needle, replacement, 1)
 
-MAIN.write_text(source.replace(old, new, 1))
-print("Moved the World card import control group down by adding 12dp above the import button.")
+MAIN.write_text(source)
+print("Shifted only the World import button, world status, and Delete world row down by 12dp without resizing the card.")
