@@ -33,7 +33,7 @@ replace_once(
                 .setMessage(details)
                 .setNegativeButton("Go back", null)
                 .setPositiveButton("Delete selected chunks", (dialog, which) -> pruneSelected(dimensionIndex, removeSavedData))
-                .create());""",
+                .create(), "Review chunk removal");""",
     "Review Selected Area dialog",
 )
 
@@ -50,7 +50,7 @@ replace_once(
                 .setMessage("This removes the imported world and its protected and working copies from WorldBridge. It does not delete the original .mcworld file you selected or any world installed in Minecraft.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Delete", (dialog, which) -> deleteImportedWorld())
-                .create());""",
+                .create(), "Delete imported world?");""",
     "Delete World dialog",
 )
 
@@ -67,7 +67,7 @@ replace_once(
                 .setMessage("The edited copy will be replaced with the protected original copy. The imported file remains unchanged.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Restore", (dialog, which) -> resetWorkingCopy())
-                .create());""",
+                .create(), "Restore original copy?");""",
     "Restore confirmation dialog",
 )
 
@@ -75,7 +75,7 @@ anchor = "    private void reviewAndPrune() {\n"
 if source.count(anchor) != 1:
     raise SystemExit("Could not find dialog helper insertion point.")
 
-helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog) {
+helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog, String titleText) {
         dialog.setOnShowListener(ignored -> {
             android.view.Window window = dialog.getWindow();
             if (window != null) {
@@ -89,7 +89,7 @@ helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog) {
 
             TextView title = findDialogTitle(
                     window != null ? window.getDecorView() : dialog.getWindow().getDecorView(),
-                    dialog.getTitle());
+                    titleText);
             if (title != null) {
                 title.setTextColor(TEXT);
                 title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
