@@ -143,12 +143,12 @@ main = main.replace('''        setContentView(scroll);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) scroll.requestApplyInsets();
         setTitle("Chunkly");
         animateCards(content);''')
-main = replace_once(main,
-'''        view.setLetterSpacing(0.01f);
-        view.setPadding(0, 0, 0, dp(4));''',
-'''        view.setLetterSpacing(0.01f);
-        view.setIncludeFontPadding(false);
-        view.setPadding(0, 0, 0, dp(4));''', 'section heading metrics')
+heading_metrics = '''        view.setIncludeFontPadding(false);
+        view.setLetterSpacing(0.01f);
+        view.setPadding(0, dp(6), 0, dp(6));'''
+if main.count(heading_metrics) != 1:
+    raise SystemExit('Shared section heading metrics are not using balanced 6dp top/bottom padding.')
+
 main = replace_once(main,
 '''        view.setTextColor(color);
         if (bold) view.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
