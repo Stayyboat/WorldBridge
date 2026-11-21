@@ -87,7 +87,9 @@ helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog) {
                 window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             }
 
-            TextView title = dialog.findViewById(android.R.id.alertTitle);
+            TextView title = findDialogTitle(
+                    window != null ? window.getDecorView() : dialog.getWindow().getDecorView(),
+                    dialog.getTitle());
             if (title != null) {
                 title.setTextColor(TEXT);
                 title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
@@ -108,6 +110,23 @@ helper = """    private AlertDialog showThemedConfirmation(AlertDialog dialog) {
         });
         dialog.show();
         return dialog;
+    }
+
+    private TextView findDialogTitle(View root, CharSequence expectedTitle) {
+        if (root instanceof TextView) {
+            TextView candidate = (TextView) root;
+            if (expectedTitle != null && expectedTitle.toString().contentEquals(candidate.getText())) {
+                return candidate;
+            }
+        }
+        if (root instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                TextView found = findDialogTitle(group.getChildAt(i), expectedTitle);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private void styleDialogButton(Button button, boolean primary) {
